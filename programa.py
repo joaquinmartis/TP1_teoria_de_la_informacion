@@ -1,4 +1,5 @@
 import numpy as np
+import sys
 import binascii
 
 def probabilidades_condicionales(nombre_archivo):
@@ -48,7 +49,13 @@ def probabilidades_extension_orden_n(matcond,orden):
     
 
 
-
+if len(sys.argv) >1:
+    filename2 = sys.argv[1]
+    print(filename2)
+    if len(sys.argv)==3:
+        N=sys.argv[2]
+else:
+    print("No se proporcionaron parámetros.")
 filename="tp1_sample0.bin"
 
 matcond=probabilidades_condicionales(filename)
