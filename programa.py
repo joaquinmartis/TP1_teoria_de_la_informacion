@@ -4,7 +4,44 @@ import copy
 import binascii
 import math
 
+<<<<<<< Updated upstream
 def Genera_Matriz_Acumulada(nombre_archivo):
+=======
+from itertools import product
+
+def calcular_probabilidades_fuente_nula(probabilidades, orden):
+    # Inicializar un diccionario para almacenar las probabilidades de la fuente nula
+    probabilidades_fuente_nula = {}
+
+    # Generar todas las posibles secuencias de longitud 'orden'
+    simbolos = list(probabilidades.keys())
+    secuencias = product(simbolos, repeat=orden)
+
+    # Calcular las probabilidades de la fuente nula
+    for secuencia in secuencias:
+        prob_secuencia = 1.0  # Probabilidad de la secuencia inicializada a 1.0
+        for simbolo in secuencia:
+            prob_secuencia *= probabilidades[simbolo]
+        probabilidades_fuente_nula[''.join(secuencia)] = prob_secuencia
+
+    return probabilidades_fuente_nula
+
+# Símbolos y sus probabilidades
+probabilidades = {'A': 0.3, 'B': 0.4, 'C': 0.3}
+
+# Orden de la fuente nula (puede cambiar)
+orden = 3
+
+# Calcular las probabilidades de la fuente nula con el orden especificado
+resultados = calcular_probabilidades_fuente_nula(probabilidades, orden)
+
+# Mostrar las probabilidades de la fuente nula
+for secuencia, probabilidad in resultados.items():
+    print(f"P({secuencia}) = {probabilidad}")
+
+def probabilidades_condicionales(nombre_archivo):
+    bloque=0
+>>>>>>> Stashed changes
 
     with open(nombre_archivo,"rb") as archivo: #se abre el archivo en modo de lectura binaria
         contenido_binario=archivo.read() #se lee el contenido del archivo y se guarda  en contenido_binario
@@ -60,12 +97,13 @@ def entropiaNoNula(vecestacionario,mat_prob_condicionales):
 
 
 if len(sys.argv) >1:
-    filename2 = sys.argv[1]
-    print(filename2)
+    filename = sys.argv[1]
+    print(filename)
     if len(sys.argv)==3:
         N=sys.argv[2]
 else:
     print("No se proporcionaron parámetros.")
+
 filename="tp1_sample0.bin"
 
 mat_acum=Genera_Matriz_Acumulada(filename) 
@@ -73,6 +111,7 @@ print(mat_acum)
 mat_prob_condicionales=matriz_probabilidades_condicionales(mat_acum)
 if fuente_memoria_nula(mat_prob_condicionales)==True:
     print("La fuente es de memoria nula")
+<<<<<<< Updated upstream
     print("La entropia es: ",entropia(mat_prob_condicionales))
 else:
     print("La fuente es de memoria no nula")
@@ -80,3 +119,8 @@ else:
     print("La entropia de la fuente es: ", entropiaNoNula(vecestacionario,mat_prob_condicionales))
     print("El vector estacionario resulta:", vecestacionario)
 
+=======
+print("La entropia es: ",entropia(mat_prob_condicionales))
+vec_probabilidades_simbolos=['0':0.5,'1':0.5]
+calcular_probabilidades_fuente_nula(mat_prob_condicionales,2)
+>>>>>>> Stashed changes
