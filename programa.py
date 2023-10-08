@@ -1,6 +1,7 @@
 import numpy as np
 import sys
 import binascii
+import math
 
 def Genera_Matriz_Acumulada(nombre_archivo):
 
@@ -43,6 +44,18 @@ def entropia(matprob):
 def probabilidades_extension_orden_n(matcond,orden):
     mat_prob_orden=np.zeros((2**orden,2**orden),dtype=float)
     
+def Genera_VecEstacionario(mat_prob_condionales):
+    auxmat=copy.deepcopy(mat_prob_condicionales)
+    auxmat[1,0]=1
+    auxmat[1,1]=1
+    b=np.array([0,1])
+    x=np.linalg.solve(auxmat,b)
+    return x
+
+def entropiaNoNula(vecestacionario,mat_prob_condicionales):
+    log_mat= np.log2(1/mat_prob_condicionales) #calcula el  base 2 de los elementos de la matriz
+    producto = mat_prob_condicionales*log_mat #calcula el producto elemento a elemento entre las dos matrices
+    return np.dot(vecestacionario, producto.sum(axis=0)) #suma las columnas armando un nuevo vector y multiplicando este por el vector estacionario
 
 
 if len(sys.argv) >1:
@@ -62,4 +75,7 @@ if fuente_memoria_nula(mat_prob_condicionales)==True:
     print("La entropia es: ",entropia(mat_prob_condicionales))
 else:
     print("La fuente es de memoria no nula")
+    vecestacionario= Genera_VecEstacionario(mat_prob_condicionales)
+    print("La entropia de la fuente es: ", entropiaNoNula(vecestacionario,mat_prob_condicionales))
+    print("El vector estacionario resulta:", vecestacionario)
 
