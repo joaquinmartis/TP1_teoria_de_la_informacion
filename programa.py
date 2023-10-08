@@ -6,8 +6,7 @@ import math
 from itertools import product
 
 def Genera_Matriz_Acumulada(nombre_archivo):
-    bloque=0
-
+    
     with open(nombre_archivo,"rb") as archivo: #se abre el archivo en modo de lectura binaria
         contenido_binario=archivo.read() #se lee el contenido del archivo y se guarda  en contenido_binario
     
