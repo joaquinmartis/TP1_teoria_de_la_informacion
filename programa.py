@@ -1,10 +1,45 @@
 import numpy as np
 import sys
+import copy
 import binascii
-
+import math
 from itertools import product
 
-def calcular_probabilidades_fuente_nula(probabilidades, orden):
+def Genera_Matriz_Acumulada(nombre_archivo):
+    bloque=0
+
+    with open(nombre_archivo,"rb") as archivo: #se abre el archivo en modo de lectura binaria
+        contenido_binario=archivo.read() #se lee el contenido del archivo y se guarda  en contenido_binario
+    
+    cadena_bits = ''.join(format(byte, '08b') for byte in contenido_binario) #se convierte el contenido binario en una cadena de bits (cadena unica)
+
+    mat = np.zeros((2, 2), dtype=int) 
+    mat=np.array(mat) #se crea una matriz NumPy int de 2x2 llena de ceros
+    
+    for i in range(1,len(cadena_bits)): # se recorre secuencialmente la cadena de bits y se acumula en la matriz segun corresponda
+        mat[int(cadena_bits[i]),int(cadena_bits[i-1])]+= 1 #se acumuna en fila de lectura actual y en la columna lectura anterior
+    return mat
+
+def matriz_probabilidades_condicionales(matcond):
+    auxmat = np.zeros((2, 2), dtype=float)  # Create a copy to avoid modifying the original matrix
+    
+    aux = matcond[0, 0] + matcond[0, 1]
+    aux = np.sum(matcond, axis=0)
+    auxmat[:, 0] = matcond[:, 0] / aux[0]
+    auxmat[:, 1] = matcond[:, 1] / aux[1]
+    
+    return auxmat
+
+def is_fuente_memoria_nula(matprob):
+    return abs(matprob[0,0]-matprob[1,0])<0.05 and abs(matprob[0,1]-matprob[1,1])<0.05
+
+def calcular_probabilidades_fuente_nula(mat_acum):
+    aux = np.sum(mat_acum)
+    P0 = mat_acum[0] / aux
+    P1 = mat_acum[1] / aux
+    return {'0': P0, '1': P1}
+
+def calcular_probabilidades_extension(probabilidades,orden):
     # Inicializar un diccionario para almacenar las probabilidades de la fuente nula
     probabilidades_fuente_nula = {}
 
@@ -21,60 +56,12 @@ def calcular_probabilidades_fuente_nula(probabilidades, orden):
 
     return probabilidades_fuente_nula
 
-# Símbolos y sus probabilidades
-probabilidades = {'A': 0.3, 'B': 0.4, 'C': 0.3}
+def entropiaNula(probabilidades):
+    return probabilidades['0']*math.log2(1/probabilidades['0']) + probabilidades['1']*math.log2(1/probabilidades['1'])
 
-# Orden de la fuente nula (puede cambiar)
-orden = 3
-
-# Calcular las probabilidades de la fuente nula con el orden especificado
-resultados = calcular_probabilidades_fuente_nula(probabilidades, orden)
-
-# Mostrar las probabilidades de la fuente nula
-for secuencia, probabilidad in resultados.items():
-    print(f"P({secuencia}) = {probabilidad}")
-
-def probabilidades_condicionales(nombre_archivo):
-    bloque=0
-
-    with open(nombre_archivo,"rb") as archivo: #se abre el archivo en modo de lectura binaria
-        contenido_binario=archivo.read() #se lee el contenido del archivo y se guarda  en contenido_binario
-    
-    cadena_bits = ''.join(format(byte, '08b') for byte in contenido_binario) #se convierte el contenido binario en una cadena de bits (cadena unica)
-
-    mat = np.zeros((2, 2), dtype=int) 
-    mat=np.array(mat) #se crea una matriz NumPy int de 2x2 llena de ceros
-    
-    for i in range(1,len(cadena_bits)): # se recorre secuencialmente la cadena de bits y se acumula en la matriz segun corresponda
-        mat[int(cadena_bits[i-1]),int(cadena_bits[i+1])]+= 1 #se acumuna en fila de lectura actual y en la columna lectura anterior
-    return mat
-
-def matriz_probabilidades_condicionales(matcond):
-    auxmat = np.zeros((2, 2), dtype=float)  # Create a copy to avoid modifying the original matrix
-    
-    aux = matcond[0, 0] + matcond[0, 1]
-    auxmat[0, 0] = matcond[0, 0] / aux
-    auxmat[1, 0] = matcond[1, 0] / aux
-
-    aux = matcond[0, 1] + matcond[1, 1]
-    auxmat[0, 1] = matcond[0, 1] / aux
-    auxmat[1, 1] = matcond[1, 1] / aux
-    return auxmat
-
-
-def fuente_memoria_nula(matprob):
-    return abs(matprob[0,0]-matprob[1,0])<0.05 and abs(matprob[0,1]-matprob[1,1])<0.05
-
-def entropia(matprob):
-    entropia=0
-    for i in range(len(matprob)):
-        for j in range(len(matprob)):
-            if matprob[i,j]!=0:
-                entropia+=matprob[i,j]*np.log2(1/matprob[i,j])
-    return entropia
-
-def probabilidades_extension_orden_n(matcond,orden):
-    mat_prob_orden=np.zeros((2**orden,2**orden),dtype=float)
+def entropiaExtensionNula(probabilidades,orden):
+    aux=entropiaNula(probabilidades)
+    return orden*aux
     
 def Genera_VecEstacionario(mat_prob_condionales):
     auxmat=copy.deepcopy(mat_prob_condicionales)
@@ -92,25 +79,23 @@ def entropiaNoNula(vecestacionario,mat_prob_condicionales):
 
 if len(sys.argv) >1:
     filename = sys.argv[1]
-    print(filename)
-    if len(sys.argv)==3:
-        N=sys.argv[2]
+    mat_acum=Genera_Matriz_Acumulada(filename)
+    mat_prob_condicionales=matriz_probabilidades_condicionales(mat_acum)
+
+    if is_fuente_memoria_nula(mat_prob_condicionales)==True:
+        print("La fuente es de memoria nula")
+        prob_simbolos=calcular_probabilidades_fuente_nula(mat_acum)
+        print("La entropia es: ",entropiaNula(prob_simbolos))   
+        if len(sys.argv)==3:
+            orden=sys.argv[2]
+            probabilidades_extension= calcular_probabilidades_extension(prob_simbolos,orden)
+            print("La entropia de la extension de la fuente resulta: ", entropiaExtensionNula(prob_simbolos,orden))
+        else:
+            print("No se ha recibido el orden para el calculos de extension")
+    else:
+        print("La fuente es de memoria no nula")
+        vecestacionario= Genera_VecEstacionario(mat_prob_condicionales)
+        print("La entropia de la fuente es: ", entropiaNoNula(vecestacionario,mat_prob_condicionales))
+        print("El vector estacionario resulta:", vecestacionario)
 else:
     print("No se proporcionaron parámetros.")
-
-filename="tp1_sample0.bin"
-
-mat_acum=Genera_Matriz_Acumulada(filename)
-print(mat_acum)
-mat_prob_condicionales=matriz_probabilidades_condicionales(mat_acum)
-if fuente_memoria_nula(mat_prob_condicionales)==True:
-    print("La fuente es de memoria nula")
-    print("La entropia es: ",entropia(mat_prob_condicionales))
-else:
-    print("La fuente es de memoria no nula")
-    vecestacionario= Genera_VecEstacionario(mat_prob_condicionales)
-    print("La entropia de la fuente es: ", entropiaNoNula(vecestacionario,mat_prob_condicionales))
-    print("El vector estacionario resulta:", vecestacionario)
-print("La entropia es: ",entropia(mat_prob_condicionales))
-dict_probabilidades_simbolos={'0':0,'1':0.5}
-calcular_probabilidades_fuente_nula(mat_prob_condicionales,2)
