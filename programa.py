@@ -59,4 +59,7 @@ print(mat_acum)
 mat_prob_condicionales=matriz_probabilidades_condicionales(mat_acum)
 if fuente_memoria_nula(mat_prob_condicionales)==True:
     print("La fuente es de memoria nula")
-print("La entropia es: ",entropia(mat_prob_condicionales))
+    print("La entropia es: ",entropia(mat_prob_condicionales))
+else:
+    print("La fuente es de memoria no nula")
+
