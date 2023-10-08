@@ -2,32 +2,28 @@ import numpy as np
 import sys
 import binascii
 
-def probabilidades_condicionales(nombre_archivo):
-    bloque=0
+def Genera_Matriz_Acumulada(nombre_archivo):
 
-    with open(nombre_archivo,"rb") as archivo:
-        contenido_binario=archivo.read()
+    with open(nombre_archivo,"rb") as archivo: #se abre el archivo en modo de lectura binaria
+        contenido_binario=archivo.read() #se lee el contenido del archivo y se guarda  en contenido_binario
     
-    cadena_bits = ''.join(format(byte, '08b') for byte in contenido_binario)
+    cadena_bits = ''.join(format(byte, '08b') for byte in contenido_binario) #se convierte el contenido binario en una cadena de bits (cadena unica)
 
-    #print(cadena_bits)
-
-    matcond = np.zeros((2, 2), dtype=int)
-
-    matcond=np.array(matcond)
-    i=1
-    for i in range(len(cadena_bits)):
-        matcond[int(cadena_bits[i-1]),int(cadena_bits[i])]+= 1
-    return matcond
+    mat = np.zeros((2, 2), dtype=int) 
+    mat=np.array(mat) #se crea una matriz NumPy int de 2x2 llena de ceros
+    
+    for i in range(1,len(cadena_bits)): # se recorre secuencialmente la cadena de bits y se acumula en la matriz segun corresponda
+        mat[int(cadena_bits[i]),int(cadena_bits[i+1])]+= 1 #se acumuna en fila de lectura actual y en la columna lectura anterior
+    return mat
 
 def matriz_probabilidades_condicionales(matcond):
-    auxmat = np.zeros((2, 2), dtype=float)  # Create a copy to avoid modifying the original matrix
+    auxmat = np.zeros((2, 2), dtype=float)  # se crea una matriz auxiliar de 2x2 para almacenar las probabilidades condicionales
     
-    aux = matcond[0, 0] + matcond[0, 1]
+    aux = matcond[0, 0] + matcond[0, 1] #se suma la columna 0
     auxmat[0, 0] = matcond[0, 0] / aux
     auxmat[1, 0] = matcond[1, 0] / aux
 
-    aux = matcond[0, 1] + matcond[1, 1]
+    aux = matcond[0, 1] + matcond[1, 1]  #se suma la columna 1
     auxmat[0, 1] = matcond[0, 1] / aux
     auxmat[1, 1] = matcond[1, 1] / aux
     return auxmat
@@ -58,9 +54,9 @@ else:
     print("No se proporcionaron parámetros.")
 filename="tp1_sample0.bin"
 
-matcond=probabilidades_condicionales(filename)
-print(matcond)
-mat_prob_condicionales=matriz_probabilidades_condicionales(matcond)
+mat_acum=Genera_Matriz_Acumulada(filename) 
+print(mat_acum)
+mat_prob_condicionales=matriz_probabilidades_condicionales(mat_acum)
 if fuente_memoria_nula(mat_prob_condicionales)==True:
     print("La fuente es de memoria nula")
 print("La entropia es: ",entropia(mat_prob_condicionales))
