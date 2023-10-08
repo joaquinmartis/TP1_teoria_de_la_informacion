@@ -47,9 +47,10 @@ def probabilidades_extension_orden_n(matcond,orden):
     
 def Genera_VecEstacionario(mat_prob_condionales):
     auxmat=copy.deepcopy(mat_prob_condicionales)
+    auxmat[0,0]-=1
     auxmat[1,]=1 # se pone unos en la fila 1
     b=np.array([0,1]) #vector de terminos independientes o constantes
-    x=np.linalg.solve(auxmat,b)
+    x=np.linalg.solve(auxmat,b) #resuelve sistema de ecuaciones a partir de que (M-I)V*=0 y sumatoria_de_Vi*=1
     return x
 
 def entropiaNoNula(vecestacionario,mat_prob_condicionales):
