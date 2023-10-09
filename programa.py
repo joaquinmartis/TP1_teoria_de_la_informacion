@@ -88,7 +88,7 @@ if len(sys.argv) >1:
         if len(sys.argv)==3:
             orden=sys.argv[2]
             probabilidades_extension= calcular_probabilidades_extension(prob_simbolos,orden)
-            print("La entropia de la extension de la fuente resulta: ", entropiaExtensionNula(prob_simbolos,orden))
+            print("La entropia de la extension de orden N resulta: ", entropiaExtensionNula(prob_simbolos,orden))
         else:
             print("No se ha recibido el orden para el calculos de extension")
     else:
