@@ -30,12 +30,12 @@ def matriz_probabilidades_condicionales(matcond):
     return auxmat
 
 def is_fuente_memoria_nula(matprob):
-    return abs(matprob[0,0]-matprob[1,0])<0.05 and abs(matprob[0,1]-matprob[1,1])<0.05
+    return abs(matprob[0,0]-matprob[0,1])<0.05 and abs(matprob[1,0]-matprob[1,1])<0.05
 
 def calcular_probabilidades_fuente_nula(mat_acum):
     aux = np.sum(mat_acum)
-    P0 = mat_acum[0] / aux
-    P1 = mat_acum[1] / aux
+    P0 = np.sum(mat_acum[0]) / aux
+    P1 = np.sum(mat_acum[1]) / aux
     return {'0': P0, '1': P1}
 
 def calcular_probabilidades_extension(probabilidades,orden):
@@ -80,15 +80,17 @@ if len(sys.argv) >1:
     filename = sys.argv[1]
     mat_acum=Genera_Matriz_Acumulada(filename)
     mat_prob_condicionales=matriz_probabilidades_condicionales(mat_acum)
-
+    print("Matriz de probabilidades condicionales : \n",mat_prob_condicionales)
     if is_fuente_memoria_nula(mat_prob_condicionales)==True:
         print("La fuente es de memoria nula")
         prob_simbolos=calcular_probabilidades_fuente_nula(mat_acum)
         print("La entropia es: ",entropiaNula(prob_simbolos))   
         if len(sys.argv)==3:
-            orden=sys.argv[2]
+            orden=int(sys.argv[2])
+            print("Para la extension de orden ",orden," resulta:")
             probabilidades_extension= calcular_probabilidades_extension(prob_simbolos,orden)
-            print("La entropia de la extension de orden ", orden," resulta: ", entropiaExtensionNula(prob_simbolos,orden))
+            print ("\tLas probabilidades: ",probabilidades_extension)
+            print("\tLa entropia ", orden," resulta: ", entropiaExtensionNula(prob_simbolos,orden))
         else:
             print("No se ha recibido el orden para el calculos de extension")
     else:
