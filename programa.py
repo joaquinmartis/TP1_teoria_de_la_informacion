@@ -100,4 +100,3 @@ if len(sys.argv) >1:
         print("El vector estacionario resulta:", vecestacionario)
 else:
     print("No se proporcionaron parámetros.")
-#gol
