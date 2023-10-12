@@ -22,10 +22,11 @@ def Genera_Matriz_Acumulada(nombre_archivo):
 def matriz_probabilidades_condicionales(matcond):
     auxmat = np.zeros((2, 2), dtype=float)  # Create a copy to avoid modifying the original matrix
     
-    aux = matcond[0, 0] + matcond[0, 1]
-    aux = np.sum(matcond, axis=0)
-    auxmat[:, 0] = matcond[:, 0] / aux[0]
-    auxmat[:, 1] = matcond[:, 1] / aux[1]
+    aux = np.sum(matcond, axis=0)  #calcula suma por columnas
+    if(aux[0]!=0):
+        auxmat[:, 0] = matcond[:, 0] / aux[0]
+    if (aux[1]!=0):
+        auxmat[:, 1] = matcond[:, 1] / aux[1]
     
     return auxmat
 
@@ -33,9 +34,12 @@ def is_fuente_memoria_nula(matprob):
     return abs(matprob[0,0]-matprob[0,1])<0.05 and abs(matprob[1,0]-matprob[1,1])<0.05
 
 def calcular_probabilidades_fuente_nula(mat_acum):
+    P0=0
+    P1=0
     aux = np.sum(mat_acum)
-    P0 = np.sum(mat_acum[0]) / aux
-    P1 = np.sum(mat_acum[1]) / aux
+    if(aux!=0):
+        P0 = np.sum(mat_acum[0]) / aux
+        P1 = np.sum(mat_acum[1]) / aux
     return {'0': P0, '1': P1}
 
 def calcular_probabilidades_extension(probabilidades,orden):
@@ -56,7 +60,11 @@ def calcular_probabilidades_extension(probabilidades,orden):
     return probabilidades_fuente_nula
 
 def entropiaNula(probabilidades):
-    return probabilidades['0']*math.log2(1/probabilidades['0']) + probabilidades['1']*math.log2(1/probabilidades['1'])
+    entropia = 0
+    for valor, probabilidad in probabilidades.items():
+        if probabilidad > 0:
+            entropia += probabilidad * math.log2(1 / probabilidad)
+    return entropia
 
 def entropiaExtensionNula(probabilidades,orden):
     aux=entropiaNula(probabilidades)
@@ -71,7 +79,14 @@ def Genera_VecEstacionario(mat_prob_condionales):
     return x
 
 def entropiaNoNula(vecestacionario,mat_prob_condicionales):
-    log_mat= np.log2(1/mat_prob_condicionales) #calcula el  base 2 de los elementos de la matriz
+    filas, columnas = mat_prob_condicionales.shape
+    log_mat = np.empty((filas, columnas))
+    for i in range(filas):
+        for j in range(columnas):
+            if mat_prob_condicionales[i, j] > 0:
+                log_mat[i, j] = np.log2(1 / mat_prob_condicionales[i, j])
+            else:
+                log_mat[i, j] = 0
     producto = mat_prob_condicionales*log_mat #calcula el producto elemento a elemento entre las dos matrices
     return np.dot(vecestacionario, producto.sum(axis=0)) #suma las columnas armando un nuevo vector y multiplicando este por el vector estacionario
 
@@ -90,7 +105,7 @@ if len(sys.argv) >1:
             print("Para la extension de orden ",orden," resulta:")
             probabilidades_extension= calcular_probabilidades_extension(prob_simbolos,orden)
             print ("\tLas probabilidades: ",probabilidades_extension)
-            print("\tLa entropia ", orden," resulta: ", entropiaExtensionNula(prob_simbolos,orden))
+            print("\tLa entropia= ", entropiaExtensionNula(prob_simbolos,orden))
         else:
             print("No se ha recibido el orden para el calculos de extension")
     else:
